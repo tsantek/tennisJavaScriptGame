@@ -18,6 +18,31 @@
         let canvas;
         let canvasContext;
         var ballX = 50;
+        var ballY = 50;
+        var ballSpeedX = 10;
+        var ballSpeedY = 4;
+
+
+        var player1Score = 0;
+        var player2Score = 0;
+
+        var paddleY = 250;
+        var paddleComputerY = 250;
+        const paddleHeight = 100;
+        const paddleThickenss = 10;
+
+
+        function calculateMousePos(evt) {
+            var rect = canvas.getBoundingClientRect();
+            var root = document.documentElement;
+            var mosueX = evt.clientX - rect.left - root.scrollLeft;
+            var mosueY = evt.clientY - rect.top - root.scrollTop;
+            return {
+                x: mosueX,
+                y: mosueY
+            }
+        }
+
 
         window.onload = () => {
 
@@ -30,22 +55,99 @@
                 drawEverything()
             }, 1000 / framesPerSecond)
 
+            canvas.addEventListener('mousemove',
+                function(evt) {
+                    var mousePos = calculateMousePos(evt)
+                    paddleY = mousePos.y - (paddleHeight / 2);
+                })
+
         }
 
-        function moveEverything() {
-            ballX = ballX + 5;
+        // ball reset
+        function ballReset() {
+            ballSpeedX = -ballSpeedX;
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+
         }
+
+        // AI movment
+        function computerMovement() {
+            var paddleComputerYCenter = paddleComputerY + (paddleHeight / 2);
+            if (paddleComputerYCenter < ballY - 35) {
+                paddleComputerY = paddleComputerY + 6;
+            } else if (paddleComputerYCenter > ballY + 35) {
+                paddleComputerY = paddleComputerY - 6;
+            }
+        }
+
+
+        function moveEverything() {
+            computerMovement();
+            ballX = ballX + ballSpeedX;
+            ballY = ballY + ballSpeedY;
+
+            if (ballX < 0) {
+                if (ballY > paddleY &&
+                    ballY < paddleY + paddleHeight) {
+                    ballSpeedX = -ballSpeedX;
+                } else {
+                    ballReset()
+                    player2Score++;
+                }
+
+            }
+            if (ballX > canvas.width) {
+                if (ballY > paddleComputerY &&
+                    ballY < paddleComputerY + paddleHeight) {
+                    ballSpeedX = -ballSpeedX;
+                } else {
+                    ballReset();
+                    player1Score++;
+                }
+            }
+
+
+            if (ballY < 0) {
+                ballSpeedY = -ballSpeedY;
+            }
+
+            if (ballY > canvas.height) {
+                ballSpeedY = -ballSpeedY;
+            }
+
+
+
+        }
+
 
 
         function drawEverything() {
+            // black background
+            colorRect(0, 0, canvas.width, canvas.height, 'black');
+            // left player paddle
+            colorRect(0, paddleY, paddleThickenss, paddleHeight, 'white');
+            // right computer paddle
+            colorRect(canvas.width - paddleThickenss, paddleComputerY, paddleThickenss, paddleHeight, 'white');
+            // ball
+            colorCircle(ballX, ballY, 10, 'white')
 
+            canvasContext.fillText(player1Score, 100, 100)
+            canvasContext.fillText(player2Score, canvas.width - 100, 100)
+        }
+        // ball 
+        function colorCircle(centerX, centerY, radius, drawColor) {
+            canvasContext.fillStyle = drawColor;
+            canvasContext.beginPath();
+            canvasContext.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+            canvasContext.fill();
+        }
 
-            canvasContext.fillStyle = 'black';
-            canvasContext.fillRect(0, 0, canvas.width, canvas.height);
-            canvasContext.fillStyle = 'white';
-            canvasContext.fillRect(0, 200, 10, 100);
-            canvasContext.fillStyle = 'red';
-            canvasContext.fillRect(ballX, 100, 10, 10);
+        // create rect
+        function colorRect(leftX, topY, width, height, drawColor) {
+            canvasContext.fillStyle = drawColor;
+            canvasContext.fillRect(leftX, topY, width, height);
+
         }
     </script>
 
